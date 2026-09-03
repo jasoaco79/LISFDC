@@ -1,0 +1,35 @@
+# Local / OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Node (tests only; the extension itself has no runtime npm deps)
+node_modules/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Secrets and session material — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+cookies.txt
+cookies.json
+*cookie*.txt
+*session_token*
+*authorization*header*
+salesforce-sid*
+linkedin-li_at*
+*.sid
+
+# Accidental dumps
+*.har
+network-log.json
+
+# Local screenshot Chrome profile
+.tmp-chrome-screenshots/

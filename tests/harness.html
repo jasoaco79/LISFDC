@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>LISFDC parser harness</title>
+  </head>
+  <body>
+    <pre id="out">running…</pre>
+    <script type="module">
+      import { extractLinkedIn } from "../src/content/parse-linkedin.js";
+      import { extractSalesforce } from "../src/content/parse-salesforce.js";
+
+      const failures = [];
+      const assert = (cond, msg) => {
+        if (!cond) failures.push(msg);
+      };
+
+      async function load(path) {
+        const res = await fetch(path);
+        const html = await res.text();
+        return new DOMParser().parseFromString(html, "text/html");
+      }
+
+      const profile = extractLinkedIn(
+        await load("../fixtures/linkedin-profile.html"),
+        "https://www.linkedin.com/in/jane-example"
+      );
+      assert(profile.status === "ok", "profile status ok");
+      assert(profile.data.name === "Jane Example", "profile name");
+      assert(/VP Sales/.test(profile.data.headline), "profile headline");
+      assert(/Austin/.test(profile.data.location), "profile location");
+      assert(profile.data.currentCompany === "Northwind" || /Northwind/.test(profile.data.currentCompany), "profile company");
+      assert(profile.data.currentRole, "profile current role present");
+      assert(profile.data.publicId === "jane-example", "profile public id");
+
+      const search = extractLinkedIn(
+        await load("../fixtures/linkedin-search.html"),
+        "https://www.linkedin.com/search/results/people/?keywords=sales"
+      );
+      assert(search.status === "ok", "search status ok");
+      assert(search.pageType === "search", "search page type");
+      assert(search.data.results.length === 2, "two search cards");
+      assert(search.data.results[0].name === "Ada Example", "first card name");
+      assert(/Contoso/.test(search.data.results[0].headline), "first card headline");
+
+      const company = extractLinkedIn(
+        await load("../fixtures/linkedin-company.html"),
+        "https://www.linkedin.com/company/northwind"
+      );
+      assert(company.status === "ok", "company status ok");
+      assert(company.data.companyName === "Northwind", "company name");
+
+      const guest = extractLinkedIn(
+        await load("../fixtures/linkedin-guest.html"),
+        "https://www.linkedin.com/login"
+      );
+      assert(guest.status === "not_signed_in", "guest / login is not_signed_in");
+      assert(!guest.data.name, "guest extract has no name");
+
+      const emptyDoc = new DOMParser().parseFromString("<html><body><p>feed</p></body></html>", "text/html");
+      const unexpected = extractLinkedIn(emptyDoc, "https://www.linkedin.com/feed/");
+      assert(unexpected.status === "unexpected_layout", "empty feed is unexpected_layout");
+
+      const lightning = extractSalesforce(
+        await load("../fixtures/salesforce-lightning.html"),
+        "https://acme.lightning.force.com/lightning/r/Contact/003000000000001AAA/view"
+      );
+      assert(lightning.status === "ok", "lightning status ok");
+      assert(lightning.data.id === "003000000000001AAA", "lightning id from URL");
+      assert(lightning.data.objectType === "Contact", "lightning object from URL");
+      assert(lightning.data.name === "Jane Example", "lightning name");
+      assert(lightning.data.headerFields.some((f) => f.label === "Title" && f.value === "VP Sales"), "highlight title");
+      assert(lightning.data.headerFields.some((f) => f.label === "Account" && f.value === "Northwind"), "highlight account");
+      assert(
+        !JSON.stringify(lightning).includes("sid="),
+        "lightning extract must not include sid cookie values"
+      );
+
+      const classic = extractSalesforce(
+        await load("../fixtures/salesforce-classic.html"),
+        "https://na1.salesforce.com/003000000000001AAA"
+      );
+      assert(classic.status === "ok", "classic status ok");
+      assert(classic.data.id === "003000000000001AAA", "classic id");
+      assert(classic.data.objectType === "Contact", "classic object from key prefix");
+      assert(classic.data.name === "Jane Example", "classic name");
+
+      const sfLogin = extractSalesforce(
+        await load("../fixtures/salesforce-login.html"),
+        "https://login.salesforce.com/"
+      );
+      assert(sfLogin.status === "not_signed_in", "salesforce login status");
+
+      const report = {
+        ok: failures.length === 0,
+        failures,
+        samples: {
+          profile: profile.data,
+          lightning: lightning.data,
+        },
+      };
+      document.getElementById("out").textContent = JSON.stringify(report, null, 2);
+      document.title = report.ok ? "LISFDC_HARNESS_OK" : "LISFDC_HARNESS_FAIL";
+    </script>
+  </body>
+</html>

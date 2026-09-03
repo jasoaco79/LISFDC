@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Jane Example | Contact | Salesforce</title>
+  </head>
+  <body>
+    <div class="slds-page-header">
+      <h1 class="slds-page-header__title">
+        <lightning-formatted-text>Jane Example</lightning-formatted-text>
+      </h1>
+      <slot name="primaryField">Jane Example</slot>
+      <records-highlights-details-item>
+        <p class="slds-text-title">Title</p>
+        <lightning-formatted-text>VP Sales</lightning-formatted-text>
+      </records-highlights-details-item>
+      <records-highlights-details-item>
+        <p class="slds-text-title">Account</p>
+        <a href="/lightning/r/Account/001000000000001AAA/view">Northwind</a>
+      </records-highlights-details-item>
+      <records-highlights-details-item>
+        <p class="slds-text-title">Email</p>
+        <lightning-formatted-email>jane@example.com</lightning-formatted-email>
+      </records-highlights-details-item>
+      <records-highlights-details-item>
+        <p class="slds-text-title">Phone</p>
+        <lightning-formatted-phone>(512) 555-0100</lightning-formatted-phone>
+      </records-highlights-details-item>
+      <records-highlights-details-item>
+        <p class="slds-text-title">Session cookie</p>
+        <p>sid=00Dxx0000001gFE!AQcAQH0.this.must.not.be.stored.anywhere.in.the.extract</p>
+      </records-highlights-details-item>
+    </div>
+  </body>
+</html>

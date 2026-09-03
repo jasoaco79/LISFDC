@@ -1,0 +1,14 @@
+{
+  "name": "lisfdc",
+  "private": true,
+  "version": "1.0.0",
+  "description": "LISFDC Chrome MV3 extension — unpacked local install only. No Web Store publish.",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run.mjs",
+    "icons": "python3 scripts/make-icons.py"
+  },
+  "devDependencies": {
+    "linkedom": "^0.18.11"
+  }
+}

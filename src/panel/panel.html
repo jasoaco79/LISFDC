@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LISFDC</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div>
+          <p class="eyebrow">Internal desk tool</p>
+          <h1>LISFDC</h1>
+        </div>
+        <p class="lede">
+          Read the current LinkedIn and Salesforce tabs in this Chrome profile. Compare the last extracts side by side.
+          User-initiated. Local storage only.
+        </p>
+      </header>
+
+      <section class="controls" aria-label="User-initiated actions">
+        <div class="btn-row">
+          <button type="button" id="read-linkedin" class="btn primary">Read LinkedIn tab</button>
+          <button type="button" id="read-salesforce" class="btn primary">Read Salesforce tab</button>
+          <button type="button" id="clear-extracts" class="btn ghost">Clear last extracts</button>
+        </div>
+
+        <form id="nav-form" class="nav" autocomplete="off">
+          <label for="nav-url">Open in this tab</label>
+          <div class="nav-row">
+            <input
+              id="nav-url"
+              name="url"
+              type="text"
+              spellcheck="false"
+              placeholder="https://www.linkedin.com/in/… or a search URL"
+            />
+            <button type="submit" class="btn accent">Open in this tab</button>
+          </div>
+          <p class="hint">
+            Navigates an existing LinkedIn tab only. Does not auto-connect, InMail, like, or follow. Does not write to
+            Salesforce.
+          </p>
+        </form>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <section class="compare" aria-label="Last extracts">
+        <article class="card" id="linkedin-card">
+          <header class="card-head">
+            <h2>LinkedIn</h2>
+            <span class="badge" id="linkedin-badge">empty</span>
+          </header>
+          <div class="card-body" id="linkedin-body"></div>
+        </article>
+        <article class="card" id="salesforce-card">
+          <header class="card-head">
+            <h2>Salesforce</h2>
+            <span class="badge" id="salesforce-badge">empty</span>
+          </header>
+          <div class="card-body" id="salesforce-body"></div>
+        </article>
+      </section>
+
+      <footer class="foot">
+        <p>
+          Hosts: linkedin.com, www.linkedin.com, Sales Navigator, *.lightning.force.com, *.salesforce.com,
+          *.my.salesforce.com, *.force.com. No remote scrape. No Web Store publish.
+        </p>
+      </footer>
+    </div>
+    <script src="panel.js" type="module"></script>
+  </body>
+</html>

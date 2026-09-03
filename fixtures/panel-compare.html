@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LISFDC</title>
+    <link rel="stylesheet" href="../src/panel/panel.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="top">
+        <div>
+          <p class="eyebrow">Internal desk tool</p>
+          <h1>LISFDC</h1>
+        </div>
+        <p class="lede">
+          Read the current LinkedIn and Salesforce tabs in this Chrome profile. Compare the last extracts side by side.
+          User-initiated. Local storage only.
+        </p>
+      </header>
+      <section class="controls">
+        <div class="btn-row">
+          <button type="button" class="btn primary">Read LinkedIn tab</button>
+          <button type="button" class="btn primary">Read Salesforce tab</button>
+          <button type="button" class="btn ghost">Clear last extracts</button>
+        </div>
+        <form class="nav">
+          <label>Open in this tab</label>
+          <div class="nav-row">
+            <input type="text" value="https://www.linkedin.com/in/jane-example" readonly />
+            <button type="button" class="btn accent">Open in this tab</button>
+          </div>
+          <p class="hint">
+            Navigates an existing LinkedIn tab only. Does not auto-connect, InMail, like, or follow. Does not write to
+            Salesforce.
+          </p>
+        </form>
+      </section>
+      <p class="status ok">Extract stored in chrome.storage.local (this profile only).</p>
+      <section class="compare">
+        <article class="card">
+          <header class="card-head">
+            <h2>LinkedIn</h2>
+            <span class="badge ok">ok</span>
+          </header>
+          <div class="card-body">
+            <p class="meta">profile · 2026-09-03T02:41:00.000Z · https://www.linkedin.com/in/jane-example</p>
+            <dl class="fields">
+              <div><dt>Name</dt><dd>Jane Example</dd></div>
+              <div><dt>Headline</dt><dd>VP Sales at Northwind</dd></div>
+              <div><dt>Location</dt><dd>Austin, Texas, United States</dd></div>
+              <div><dt>Current role</dt><dd>VP Sales</dd></div>
+              <div><dt>Current company</dt><dd>Northwind</dd></div>
+              <div><dt>Public id</dt><dd>jane-example</dd></div>
+            </dl>
+            <details class="json" open>
+              <summary>Structured JSON</summary>
+              <pre>{
+  "source": "linkedin",
+  "status": "ok",
+  "pageType": "profile",
+  "data": {
+    "name": "Jane Example",
+    "headline": "VP Sales at Northwind",
+    "location": "Austin, Texas, United States",
+    "currentRole": "VP Sales",
+    "currentCompany": "Northwind"
+  }
+}</pre>
+            </details>
+          </div>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <h2>Salesforce</h2>
+            <span class="badge ok">ok</span>
+          </header>
+          <div class="card-body">
+            <p class="meta">record · 2026-09-03T02:41:10.000Z · https://example.lightning.force.com/lightning/r/Contact/003000000000001AAA/view</p>
+            <dl class="fields">
+              <div><dt>Name</dt><dd>Jane Example</dd></div>
+              <div><dt>Object</dt><dd>Contact</dd></div>
+              <div><dt>Record Id</dt><dd>003000000000001AAA</dd></div>
+              <div><dt>UI</dt><dd>lightning</dd></div>
+              <div><dt>Title</dt><dd>VP Sales</dd></div>
+              <div><dt>Account</dt><dd>Northwind</dd></div>
+              <div><dt>Email</dt><dd>jane@example.com</dd></div>
+              <div><dt>Phone</dt><dd>(512) 555-0100</dd></div>
+            </dl>
+            <details class="json" open>
+              <summary>Structured JSON</summary>
+              <pre>{
+  "source": "salesforce",
+  "status": "ok",
+  "pageType": "record",
+  "data": {
+    "ui": "lightning",
+    "objectType": "Contact",
+    "id": "003000000000001AAA",
+    "name": "Jane Example"
+  }
+}</pre>
+            </details>
+          </div>
+        </article>
+      </section>
+      <footer class="foot">
+        <p>
+          Hosts: linkedin.com, www.linkedin.com, Sales Navigator, *.lightning.force.com, *.salesforce.com,
+          *.my.salesforce.com, *.force.com. No remote scrape. No Web Store publish.
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
