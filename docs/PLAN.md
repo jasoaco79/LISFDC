@@ -64,7 +64,7 @@ Box login does not stick. On Jason's real Chrome:
 2. Open a real LinkedIn profile and a Lightning record
 3. **Scrape LinkedIn** — JSON matches visible name/headline/location
 4. **Scrape Salesforce** — JSON matches visible name, object, Id from URL, on-screen fields
-5. Paste a LinkedIn URL → **Open in existing LinkedIn tab** — existing LI tab changes; no extra tab
+5. Paste a LinkedIn URL → **Open in existing LinkedIn tab** — existing LI tab navigates; a new tab is created only if none exists
 6. Confirm Salesforce has no URL field and no write/navigate
 7. Reload the side panel — both last extracts still show
 8. Non-matching tab only — scrape errors instead of reading the wrong host

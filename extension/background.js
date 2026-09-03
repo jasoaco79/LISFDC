@@ -77,6 +77,36 @@ function inject(tabId, files) {
   });
 }
 
+
+function runPageFn(tabId, kind) {
+  var fn = kind === "salesforce"
+    ? function () {
+        try {
+          if (typeof self.__LISFDC_extractSalesforce === "function") return self.__LISFDC_extractSalesforce();
+          if (typeof window !== "undefined" && typeof window.__LISFDC_extractSalesforce === "function") {
+            return window.__LISFDC_extractSalesforce();
+          }
+        } catch (e) {}
+        return null;
+      }
+    : function () {
+        try {
+          if (typeof self.__LISFDC_extractLinkedIn === "function") return self.__LISFDC_extractLinkedIn();
+          if (typeof window !== "undefined" && typeof window.__LISFDC_extractLinkedIn === "function") {
+            return window.__LISFDC_extractLinkedIn();
+          }
+        } catch (e) {}
+        return null;
+      };
+  return chrome.scripting.executeScript({ target: { tabId: tabId }, func: fn }).then(function (results) {
+    var extract = results && results[0] && results[0].result;
+    if (!extract) return { ok: false, missing: true, error: "Page function returned nothing" };
+    return { ok: true, extract: extract };
+  }).catch(function (err) {
+    return { ok: false, missing: true, error: String(err && err.message ? err.message : err) };
+  });
+}
+
 function hostOkLinkedIn(url) {
   if (self.LISFDC_HOSTS && self.LISFDC_HOSTS.isLinkedInHost) {
     return self.LISFDC_HOSTS.isLinkedInHost(url);
@@ -123,6 +153,9 @@ async function scrapeLinkedIn() {
       return { ok: false, error: "Could not inject LinkedIn reader into the open tab." };
     }
     resp = await sendExtract(tab.id, "EXTRACT_LINKEDIN");
+    if (resp.missing) {
+      resp = await runPageFn(tab.id, "linkedin");
+    }
   }
   if (!resp || !resp.ok || !resp.extract) {
     return { ok: false, error: (resp && resp.error) || "LinkedIn tab did not return visible fields." };
@@ -144,6 +177,9 @@ async function scrapeSalesforce() {
       return { ok: false, error: "Could not inject Salesforce reader into the open tab." };
     }
     resp = await sendExtract(tab.id, "EXTRACT_SALESFORCE");
+    if (resp.missing) {
+      resp = await runPageFn(tab.id, "salesforce");
+    }
   }
   if (!resp || !resp.ok || !resp.extract) {
     return { ok: false, error: (resp && resp.error) || "Salesforce tab did not return visible fields." };
@@ -183,11 +219,13 @@ async function openLinkedInUrl(raw) {
     return { ok: false, error: "URL host must be linkedin.com (including Sales Nav). Salesforce and other hosts are rejected." };
   }
   var tab = await findTab([LI_MATCH, "*://linkedin.com/*"]);
-  if (!tab) {
-    return { ok: false, error: "No existing LinkedIn tab. Open LinkedIn first, then use Open in existing LinkedIn tab." };
+  if (tab) {
+    await chrome.tabs.update(tab.id, { url: parsed.toString(), active: true });
+    return { ok: true, tabId: tab.id, url: parsed.toString(), created: false };
   }
-  await chrome.tabs.update(tab.id, { url: parsed.toString(), active: true });
-  return { ok: true, tabId: tab.id, url: parsed.toString() };
+  // Spec: reuse an existing LinkedIn tab; create only when none exists.
+  var created = await chrome.tabs.create({ url: parsed.toString(), active: true });
+  return { ok: true, tabId: created.id, url: parsed.toString(), created: true };
 }
 
 async function getStored() {

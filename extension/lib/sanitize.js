@@ -44,6 +44,10 @@
         if (cleaned === undefined) continue;
         out[key] = cleaned;
       }
+      if (Object.prototype.hasOwnProperty.call(value, "label") &&
+          !Object.prototype.hasOwnProperty.call(out, "label")) {
+        return undefined;
+      }
       return out;
     }
     if (isSensitiveString(value)) return undefined;

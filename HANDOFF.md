@@ -10,7 +10,7 @@ Private: https://github.com/jasoaco79/LISFDC
 
 ## Current main
 
-Current `main` SHA: `f2ca4bd` (README-only initial commit). Docs live on `docs/why-design` (PR #1). Product code is `pi/lisfdc-v1-side-panel`. Neither is on `main` until Jason says.
+Current `main` SHA: `f2ca4bd287cbd96fbd4ebd30a529fbc94d8b4e41` (README-only initial commit). Docs live on `docs/why-design` (PR #1). Product code is `pi/lisfdc-v1-side-panel`. Neither is on `main` until Jason says.
 
 ## Live / preview
 

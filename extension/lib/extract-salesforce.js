@@ -88,6 +88,17 @@
       id = idOnly[1];
       if (!objectName && id) objectName = PREFIX[id.substring(0, 3)] || objectName;
     }
+    try {
+      var u = new URL(url, "https://example.lightning.force.com");
+      var blob = (u.hash || "") + " " + (u.search || "");
+      var sObject = blob.match(/sObject\/([a-zA-Z0-9]{15,18})\b/);
+      if (sObject && !id) id = sObject[1];
+      var lightningHash = blob.match(/\/lightning\/r\/([A-Za-z0-9_]+)\/([a-zA-Z0-9]{15,18})/);
+      if (lightningHash) {
+        objectName = objectName || lightningHash[1];
+        id = id || lightningHash[2];
+      }
+    } catch (eHash) {}
     var attrObj = document.documentElement.getAttribute("data-lisfdc-object");
     var attrId = document.documentElement.getAttribute("data-lisfdc-id");
     if (attrObj) objectName = objectName || attrObj;
@@ -101,7 +112,7 @@
     var nodes = document.querySelectorAll(
       "[data-lisfdc-field], .slds-form-element, records-record-layout-item, lightning-output-field, records-highlights-details-item, .slds-page-header__detail-row"
     );
-    for (var i = 0; i < nodes.length && fields.length < 40; i++) {
+    for (var i = 0; i < nodes.length && fields.length < 12; i++) {
       var n = nodes[i];
       var label = "";
       var value = "";
@@ -141,7 +152,7 @@
     var fields = [];
     var seen = {};
     var labels = document.querySelectorAll(".labelCol, td.labelCol, [data-lisfdc-field]");
-    for (var i = 0; i < labels.length && fields.length < 40; i++) {
+    for (var i = 0; i < labels.length && fields.length < 12; i++) {
       var labEl = labels[i];
       var label = textOf(labEl);
       var value = "";
