@@ -10,7 +10,7 @@ Private: https://github.com/jasoaco79/LISFDC
 
 ## Current main
 
-Docs live on `docs/why-design` (PR #1). Product code is `pi/lisfdc-v1-side-panel` (this PR). Neither is on `main` until Jason says.
+Current `main` SHA: `f2ca4bd` (README-only initial commit). Docs live on `docs/why-design` (PR #1). Product code is `pi/lisfdc-v1-side-panel`. Neither is on `main` until Jason says.
 
 ## Live / preview
 
@@ -25,8 +25,9 @@ Nothing is deployed. Nothing is on the Chrome Web Store. Load unpacked on the op
 
 ## Open leftover work
 
-- QA Thursday 3 Sep 2026 on Jason’s real Chrome (box LinkedIn login does not stick)
-- Merge only when Jason says (this PR and docs PR #1)
+- v1 code is in this PR; screenshots included
+- QA Thursday 3 Sep 2026 on Jason’s real Chrome
+- Docs PR #1 stays open (this PR folds those docs; do not close #1)
 - Write-back to Salesforce, matching, store listing: out of scope
 
 ## Secrets that stay out of git

@@ -59,6 +59,11 @@ button.secondary {
   color: #70b5f9;
   border: 1px solid #3a5a7a;
 }
+.col.li button.secondary {
+  background: transparent;
+  color: #70b5f9;
+  border: 1px solid #3a5a7a;
+}
 button.ghost {
   background: transparent;
   color: #8b9bb0;

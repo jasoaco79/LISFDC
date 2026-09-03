@@ -13,7 +13,7 @@ html, body {
   color: #e7ecf1;
   font: 13px/1.4 "Segoe UI", system-ui, sans-serif;
 }
-body { display: flex; flex-direction: column; min-height: 100vh; }
+body { display: flex; flex-direction: column; min-height: 100vh; width: 100%; min-width: 360px; }
 .top {
   padding: 12px 14px 10px;
   border-bottom: 1px solid #243040;
@@ -22,6 +22,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 h1 { margin: 0; font-size: 16px; letter-spacing: 0.04em; }
 .ver { color: #8b9bb0; font-weight: 500; font-size: 12px; }
 .tag { margin: 4px 0 0; color: #8b9bb0; font-size: 11px; }
+.hint { margin: 6px 0 0; color: #6d7d90; font-size: 11px; word-break: break-all; }
 .cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -69,7 +70,12 @@ button.secondary {
   color: #70b5f9;
   border: 1px solid #3a5a7a;
 }
-
+button.ghost {
+  background: transparent;
+  color: #8b9bb0;
+  border: 1px solid #2c3c4e;
+  font-weight: 500;
+}
 button:disabled { opacity: 0.5; cursor: wait; }
 .url-label { font-size: 11px; color: #8b9bb0; }
 input[type="url"] {
@@ -107,46 +113,56 @@ input[type="url"] {
   border-top: 1px solid #243040;
   color: #8b9bb0;
   font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-@media (max-width: 520px) {
+.foot p { margin: 0; }
+@media (max-width: 280px) {
   .cols { grid-template-columns: 1fr; }
   .col.li { border-right: 0; border-bottom: 1px solid #243040; }
 }
 
-html, body { width: 840px; height: 720px; }
-body { min-height: 720px; }
+html, body { width: 840px; height: 760px; }
+body { min-height: 760px; min-width: 840px; }
 </style>
 </head>
 <body>
   <header class="top">
     <div>
       <h1>LISFDC <span class="ver">v1</span></h1>
-      <p class="tag">scrape-only · visible fields from open tabs</p>
+      <p class="tag">LinkedIn + Salesforce reader (scrape-only)</p>
+      <p id="tab-hint" class="hint">Current tab: https://example.com</p>
     </div>
   </header>
+
   <main class="cols">
     <section class="col li" aria-label="LinkedIn">
       <h2>LinkedIn</h2>
       <div class="actions">
-        <button type="button">Scrape LinkedIn</button>
+        <button type="button" id="btn-read-li">Scrape LinkedIn</button>
         <label class="url-label" for="li-url">Open in existing LinkedIn tab</label>
         <input id="li-url" type="url" spellcheck="false" placeholder="https://www.linkedin.com/in/…" />
-        <button type="button" class="secondary">Open in existing LinkedIn tab</button>
+        <button type="button" id="btn-open-li" class="secondary">Open in existing LinkedIn tab</button>
       </div>
-      <p class="status err">No open LinkedIn tab. Open linkedin.com in Chrome, then click Scrape LinkedIn.</p>
-      <pre class="json">No LinkedIn extract yet.</pre>
+      <p id="li-status" class="status err" role="status">No open LinkedIn tab. Open linkedin.com in Chrome, then press Scrape LinkedIn.</p>
+      <pre id="li-json" class="json">No LinkedIn extract yet.</pre>
     </section>
+
     <section class="col sf" aria-label="Salesforce">
       <h2>Salesforce</h2>
       <div class="actions">
-        <button type="button">Scrape Salesforce</button>
+        <button type="button" id="btn-read-sf">Scrape Salesforce</button>
       </div>
-      <p class="status err">No open Salesforce tab. Open a Lightning or Classic record in Chrome, then click Scrape Salesforce.</p>
-      <pre class="json">No Salesforce extract yet.</pre>
+      <p id="sf-status" class="status err" role="status">No open Salesforce tab. Open a Lightning or Classic record in Chrome, then press Scrape Salesforce.</p>
+      <pre id="sf-json" class="json">No Salesforce extract yet.</pre>
     </section>
   </main>
+
   <footer class="foot">
-    v1 never writes to LinkedIn or Salesforce. Visible fields only. No API.
+    <p>Never writes. Never exports cookies or session tokens. Salesforce is scrape-only — no navigate control.</p>
+    <button type="button" id="btn-clear" class="ghost">Clear last extracts</button>
   </footer>
+  
 </body>
 </html>

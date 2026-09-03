@@ -29,7 +29,7 @@ It is not a cookie exporter. It does not replay a session onto another computer.
 One Chrome profile. Two tabs you already use. The extension never signs in on your behalf.
 
 1. **Stay in your own Chrome.** Already signed in to LinkedIn and Salesforce in the profile you use every day. Do not QA LinkedIn in a lab/datacenter browser.
-2. **Load unpacked.** Extensions → Developer mode → Load unpacked → this repo’s extension folder. Pin LISFDC. Open the side panel. No password prompt from us.
+2. **Load unpacked.** Extensions → Developer mode → Load unpacked → the `extension/` folder that contains `manifest.json` (not the repo root). Pin LISFDC. Open the side panel. No password prompt from us.
 3. **Open the LinkedIn page you care about** (profile, search, or company). Press **Scrape LinkedIn**. The panel fills name, headline, location, current role when those are on the page. Signed-out or unexpected layout is reported, not guessed.
 4. **Open the Salesforce record you care about.** Press **Scrape Salesforce**. The panel imports visible name, object type, Id from the URL, header fields. The extension does not click, edit, save, or create in Salesforce.
 5. **Read both extracts in the panel.** Last scrape stays on this machine until you scrape again.
@@ -39,9 +39,14 @@ If you need a different LinkedIn URL, type it and open it in the existing Linked
 ## Install (load unpacked)
 
 1. Clone or download this private repository.
-2. Chrome → Extensions → turn on Developer mode → **Load unpacked**.
-3. Choose the `extension/` folder (it contains `manifest.json`).
-4. Open the side panel from the LISFDC action.
+2. Open `chrome://extensions`.
+3. Turn on **Developer mode**.
+4. **Load unpacked** and choose the `extension/` folder of this clone (the folder that contains `manifest.json`, not the repo root).
+5. Pin the LISFDC action and click it to open the side panel.
+
+## QA
+
+LinkedIn + Salesforce QA is **Thursday 3 Sep 2026 on Jason's real Chrome**. The shared box login does not stick — do not expect a logged-in session there. Local `fixtures/` HTML is for extractor and screenshot checks only. **Do not merge without Jason's yes.**
 
 ## Hosts
 

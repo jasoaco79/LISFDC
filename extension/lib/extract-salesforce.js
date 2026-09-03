@@ -99,7 +99,7 @@
     var fields = [];
     var seen = {};
     var nodes = document.querySelectorAll(
-      "[data-lisfdc-field], .slds-form-element, records-record-layout-item, lightning-output-field"
+      "[data-lisfdc-field], .slds-form-element, records-record-layout-item, lightning-output-field, records-highlights-details-item, .slds-page-header__detail-row"
     );
     for (var i = 0; i < nodes.length && fields.length < 40; i++) {
       var n = nodes[i];
