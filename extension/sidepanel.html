@@ -9,7 +9,8 @@
   <header class="top">
     <div>
       <h1>LISFDC <span class="ver">v1</span></h1>
-      <p class="tag">scrape-only · visible fields from open tabs</p>
+      <p class="tag">LinkedIn + Salesforce reader (scrape-only)</p>
+      <p id="tab-hint" class="hint">Current tab: …</p>
     </div>
   </header>
 
@@ -37,7 +38,8 @@
   </main>
 
   <footer class="foot">
-    v1 never writes to LinkedIn or Salesforce. Visible fields only. No API.
+    <p>Never writes. Never exports cookies or session tokens. Salesforce is scrape-only — no navigate control.</p>
+    <button type="button" id="btn-clear" class="ghost">Clear last extracts</button>
   </footer>
   <script src="sidepanel.js"></script>
 </body>

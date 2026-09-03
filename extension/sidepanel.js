@@ -14,6 +14,7 @@ function setBusy(busy) {
   $("btn-read-li").disabled = busy;
   $("btn-read-sf").disabled = busy;
   $("btn-open-li").disabled = busy;
+  $("btn-clear").disabled = busy;
 }
 
 function setStatus(which, text, kind) {
@@ -46,20 +47,41 @@ function send(msg) {
   });
 }
 
+function refreshHint() {
+  try {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      var tab = (tabs && tabs[0]) || null;
+      var hint = $("tab-hint");
+      if (!hint) return;
+      if (!tab || !tab.url) {
+        hint.textContent = "Current tab: (none)";
+        return;
+      }
+      hint.textContent = "Current tab: " + tab.url;
+    });
+  } catch (e) {
+    var hintEl = $("tab-hint");
+    if (hintEl) hintEl.textContent = "Current tab: (unavailable)";
+  }
+}
+
 async function loadLast() {
-  var resp = await send({ type: "GET_LAST_EXTRACTS" });
+  var resp = await send({ type: "GET_STORED" });
   if (!resp.ok) return;
-  if (resp.lastLinkedInExtract) renderExtract("li", resp.lastLinkedInExtract);
-  if (resp.lastSalesforceExtract) renderExtract("sf", resp.lastSalesforceExtract);
+  renderExtract("li", resp.lastLinkedInExtract || null);
+  renderExtract("sf", resp.lastSalesforceExtract || null);
+  if (!resp.lastLinkedInExtract) setStatus("li", "", "");
+  if (!resp.lastSalesforceExtract) setStatus("sf", "", "");
 }
 
 async function onReadLi() {
   setBusy(true);
-  setStatus("li", "Reading open LinkedIn tab…", "");
-  var resp = await send({ type: "READ_LINKEDIN" });
+  setStatus("li", "Scraping open LinkedIn tab…", "");
+  var resp = await send({ type: "SCRAPE_LINKEDIN" });
   setBusy(false);
+  refreshHint();
   if (!resp.ok) {
-    setStatus("li", resp.error || "Read failed.", "err");
+    setStatus("li", resp.error || "Scrape failed.", "err");
     return;
   }
   renderExtract("li", resp.extract);
@@ -67,11 +89,12 @@ async function onReadLi() {
 
 async function onReadSf() {
   setBusy(true);
-  setStatus("sf", "Reading open Salesforce tab…", "");
-  var resp = await send({ type: "READ_SALESFORCE" });
+  setStatus("sf", "Scraping open Salesforce tab…", "");
+  var resp = await send({ type: "SCRAPE_SALESFORCE" });
   setBusy(false);
+  refreshHint();
   if (!resp.ok) {
-    setStatus("sf", resp.error || "Read failed.", "err");
+    setStatus("sf", resp.error || "Scrape failed.", "err");
     return;
   }
   renderExtract("sf", resp.extract);
@@ -83,6 +106,7 @@ async function onOpenLi() {
   setStatus("li", "Updating existing LinkedIn tab…", "");
   var resp = await send({ type: "OPEN_LINKEDIN_URL", url: url });
   setBusy(false);
+  refreshHint();
   if (!resp.ok) {
     setStatus("li", resp.error || "Open failed.", "err");
     return;
@@ -90,7 +114,20 @@ async function onOpenLi() {
   setStatus("li", "Existing LinkedIn tab now at " + resp.url, "ok");
 }
 
+async function onClear() {
+  setBusy(true);
+  var resp = await send({ type: "CLEAR_STORED" });
+  setBusy(false);
+  renderExtract("li", null);
+  renderExtract("sf", null);
+  setStatus("li", resp.ok ? "Cleared." : (resp.error || "Clear failed."), resp.ok ? "ok" : "err");
+  setStatus("sf", resp.ok ? "Cleared." : "", resp.ok ? "ok" : "err");
+}
+
 $("btn-read-li").addEventListener("click", onReadLi);
 $("btn-read-sf").addEventListener("click", onReadSf);
 $("btn-open-li").addEventListener("click", onOpenLi);
+$("btn-clear").addEventListener("click", onClear);
+refreshHint();
 loadLast();
+setInterval(refreshHint, 4000);

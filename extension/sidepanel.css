@@ -7,7 +7,7 @@ html, body {
   color: #e7ecf1;
   font: 13px/1.4 "Segoe UI", system-ui, sans-serif;
 }
-body { display: flex; flex-direction: column; min-height: 100vh; }
+body { display: flex; flex-direction: column; min-height: 100vh; width: 100%; min-width: 360px; }
 .top {
   padding: 12px 14px 10px;
   border-bottom: 1px solid #243040;
@@ -16,6 +16,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 h1 { margin: 0; font-size: 16px; letter-spacing: 0.04em; }
 .ver { color: #8b9bb0; font-weight: 500; font-size: 12px; }
 .tag { margin: 4px 0 0; color: #8b9bb0; font-size: 11px; }
+.hint { margin: 6px 0 0; color: #6d7d90; font-size: 11px; word-break: break-all; }
 .cols {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -58,12 +59,12 @@ button.secondary {
   color: #70b5f9;
   border: 1px solid #3a5a7a;
 }
-.col.li button.secondary {
+button.ghost {
   background: transparent;
-  color: #70b5f9;
-  border: 1px solid #3a5a7a;
+  color: #8b9bb0;
+  border: 1px solid #2c3c4e;
+  font-weight: 500;
 }
-
 button:disabled { opacity: 0.5; cursor: wait; }
 .url-label { font-size: 11px; color: #8b9bb0; }
 input[type="url"] {
@@ -101,8 +102,12 @@ input[type="url"] {
   border-top: 1px solid #243040;
   color: #8b9bb0;
   font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
-@media (max-width: 520px) {
+.foot p { margin: 0; }
+@media (max-width: 280px) {
   .cols { grid-template-columns: 1fr; }
   .col.li { border-right: 0; border-bottom: 1px solid #243040; }
 }
