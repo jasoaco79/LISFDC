@@ -1,0 +1,70 @@
+{
+  "manifest_version": 3,
+  "name": "LISFDC",
+  "version": "1.0.0",
+  "description": "Scrape-only LinkedIn + Salesforce side panel. Reads visible fields from open logged-in tabs.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.linkedin.com/*",
+    "https://linkedin.com/*",
+    "https://*.lightning.force.com/*",
+    "https://*.salesforce.com/*",
+    "https://*.my.salesforce.com/*",
+    "https://*.force.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "Open LISFDC side panel",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.linkedin.com/*",
+        "https://linkedin.com/*"
+      ],
+      "js": [
+        "lib/sanitize.js",
+        "lib/hosts.js",
+        "lib/extract-linkedin.js",
+        "content/linkedin.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://*.lightning.force.com/*",
+        "https://*.salesforce.com/*",
+        "https://*.my.salesforce.com/*",
+        "https://*.force.com/*"
+      ],
+      "js": [
+        "lib/sanitize.js",
+        "lib/hosts.js",
+        "lib/extract-salesforce.js",
+        "content/salesforce.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}

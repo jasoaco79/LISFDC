@@ -10,7 +10,7 @@ Private: https://github.com/jasoaco79/LISFDC
 
 ## Current main
 
-GitHub-generated README only until the docs/v1 branch merges. Product code is not on `main` until Jason says.
+Docs live on `docs/why-design` (PR #1). Product code is `pi/lisfdc-v1-side-panel` (this PR). Neither is on `main` until Jason says.
 
 ## Live / preview
 
@@ -19,15 +19,14 @@ Nothing is deployed. Nothing is on the Chrome Web Store. Load unpacked on the op
 ## How to run
 
 1. Clone this repository.
-2. Chrome → Extensions → Developer mode → Load unpacked → folder with `manifest.json`.
+2. Chrome → Extensions → Developer mode → Load unpacked → the `extension/` folder (contains `manifest.json`).
 3. Sign in to LinkedIn and Salesforce in that same Chrome profile (the sites, not the extension).
 4. Open the side panel. Scrape LinkedIn. Scrape Salesforce.
 
 ## Open leftover work
 
-- v1 side panel + scrapes (QA Thursday 3 Sep 2026)
-- Screenshots of the built panel
-- Iterate sendable brief PDF is produced outside git letterhead rules; keep secrets out of git
+- QA Thursday 3 Sep 2026 on Jason’s real Chrome (box LinkedIn login does not stick)
+- Merge only when Jason says (this PR and docs PR #1)
 - Write-back to Salesforce, matching, store listing: out of scope
 
 ## Secrets that stay out of git

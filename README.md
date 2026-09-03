@@ -40,7 +40,7 @@ If you need a different LinkedIn URL, type it and open it in the existing Linked
 
 1. Clone or download this private repository.
 2. Chrome → Extensions → turn on Developer mode → **Load unpacked**.
-3. Choose the folder that contains `manifest.json`.
+3. Choose the `extension/` folder (it contains `manifest.json`).
 4. Open the side panel from the LISFDC action.
 
 ## Hosts
@@ -55,6 +55,7 @@ No `<all_urls>`.
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture and locked decisions
 - [docs/PLAN.md](docs/PLAN.md) — v1 slice (QA target)
 - [HANDOFF.md](HANDOFF.md) — how the next person continues
+- [docs/screenshots/](docs/screenshots/) — fixture shots of the side panel (not live LinkedIn/Salesforce)
 - Iterate sendable stamp (PDF): produced beside the mocks; not the letterhead of this chrome
 
 ## Secrets that stay out of git

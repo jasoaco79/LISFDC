@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>extract-runner</title></head>
+<body>
+<iframe id="p" src="linkedin-profile.html"></iframe>
+<iframe id="s" src="linkedin-search.html"></iframe>
+<iframe id="f" src="salesforce-lightning.html"></iframe>
+<pre id="out"></pre>
+<script src="../extension/lib/hosts.js"></script>
+<script src="../extension/lib/sanitize.js"></script>
+<script src="../extension/lib/extract-linkedin.js"></script>
+<script src="../extension/lib/extract-salesforce.js"></script>
+<script>
+function run(id, fn) {
+  var doc = document.getElementById(id).contentDocument;
+  var fake = { LISFDC_HOSTS: { pageUrl: function(){ return doc.documentElement.getAttribute("data-lisfdc-url"); } } };
+  // call extractors against iframe document by temporarily swapping document... can't.
+  return null;
+}
+</script>
+</body></html>

@@ -1,0 +1,9 @@
+.env
+.env.*
+cookies
+cookies*.json
+auth.json
+*.pem
+node_modules/
+.DS_Store
+.pi-prompt-v1.md
