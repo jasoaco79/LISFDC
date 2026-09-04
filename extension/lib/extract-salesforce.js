@@ -1,230 +1,188 @@
-/* LISFDC Salesforce DOM extractor. Visible fields only. No API. No writes. No cookies/CSRF/sid. */
+/* LISFDC: scrape-only Salesforce Lightning / Classic visible DOM → structured extract.
+ * No network. No cookies. Never writes. Prefer semantic / lightning selectors.
+ */
 (function (root) {
   "use strict";
 
-  var SKIP_LABEL = /session|csrf|token|cookie|sid|authorization|password|secret/i;
-
-  function textOf(el) {
+  function text(el) {
     if (!el) return "";
-    return String(el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
+    return String(el.textContent || "").replace(/\s+/g, " ").trim();
   }
 
   function firstText(selectors, rootEl) {
-    var scope = rootEl || document;
+    var base = rootEl || document;
     for (var i = 0; i < selectors.length; i++) {
       try {
-        var el = scope.querySelector(selectors[i]);
-        var t = textOf(el);
+        var el = base.querySelector(selectors[i]);
+        var t = text(el);
         if (t) return t;
       } catch (e) {}
     }
     return "";
   }
 
-  function pageUrl() {
-    if (root.LISFDC_HOSTS && root.LISFDC_HOSTS.pageUrl) {
-      var u = root.LISFDC_HOSTS.pageUrl();
-      if (u) return u;
-    }
+  function attr(el, name) {
+    if (!el) return "";
+    return String(el.getAttribute(name) || "").trim();
+  }
+
+  var RECORD_ID_RE = /\b([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})\b/;
+
+  function idFromUrl(href) {
     try {
-      if (location.protocol !== "file:") return location.href;
-    } catch (e) {}
-    try {
-      return document.documentElement.getAttribute("data-lisfdc-url") || "";
-    } catch (e2) {
+      var u = new URL(href || location.href);
+      var path = u.pathname || "";
+      var m = path.match(/\/([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})(?:\/|$)/);
+      if (m) return m[1];
+      var hash = u.hash || "";
+      m = hash.match(/\/([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})(?:\/|$|\?)/);
+      if (m) return m[1];
+      m = (href || "").match(RECORD_ID_RE);
+      return m ? m[1] : "";
+    } catch (e) {
       return "";
     }
   }
 
-  function kindFrom(url) {
-    var u = (url || "").toLowerCase();
-    var path = "";
+  function objectFromUrl(href) {
     try {
-      path = new URL(url, "https://example.salesforce.com").pathname.toLowerCase();
+      var u = new URL(href || location.href);
+      var path = (u.pathname || "") + (u.hash || "");
+      var m = path.match(/\/lightning\/r\/([A-Za-z0-9_]+)\//);
+      if (m) return m[1];
+      m = path.match(/\/lightning\/o\/([A-Za-z0-9_]+)\//);
+      if (m) return m[1];
+      return "";
     } catch (e) {
-      path = u;
+      return "";
     }
-    if (u.indexOf("lightning.force.com") >= 0 || path.indexOf("/lightning/") >= 0 || path.indexOf("/one/one.app") >= 0) {
-      return "lightning";
-    }
-    if (u.indexOf("salesforce.com") >= 0 || u.indexOf("force.com") >= 0) {
-      if (document.querySelector(".slds-page-header, lightning-page-header, .oneRecordActionWrapper")) return "lightning";
-      if (document.querySelector("#bodyCell, .bPageTitle, .labelCol")) return "classic";
-      return "classic";
-    }
-    if (document.querySelector("[data-lisfdc-kind]")) {
-      return document.querySelector("[data-lisfdc-kind]").getAttribute("data-lisfdc-kind") || "unknown";
-    }
-    return "unknown";
   }
 
-  function parseObjectAndId(url) {
-    var objectName = null;
-    var id = null;
-    var path = "";
-    try {
-      path = new URL(url, "https://example.lightning.force.com").pathname;
-    } catch (e) {
-      path = url || "";
-    }
-    var lightning = path.match(/\/lightning\/r\/([A-Za-z0-9_]+)\/([a-zA-Z0-9]{15,18})\b/);
-    if (lightning) {
-      objectName = lightning[1];
-      id = lightning[2];
-      return { object: objectName, id: id };
-    }
-    var classicObj = path.match(/\/([A-Za-z0-9_]+)\/([a-zA-Z0-9]{15,18})(?:\/|$)/);
-    if (classicObj && classicObj[1].toLowerCase() !== "lightning") {
-      objectName = classicObj[1];
-      id = classicObj[2];
-      return { object: objectName, id: id };
-    }
-    var PREFIX = {
-      "001": "Account", "003": "Contact", "00Q": "Lead", "006": "Opportunity",
-      "005": "User", "00T": "Task", "701": "Campaign", "500": "Case"
-    };
-    var idOnly = path.match(/\/([a-zA-Z0-9]{15}|[a-zA-Z0-9]{18})(?:\/|$)/);
-    if (idOnly) {
-      id = idOnly[1];
-      if (!objectName && id) objectName = PREFIX[id.substring(0, 3)] || objectName;
-    }
-    try {
-      var u = new URL(url, "https://example.lightning.force.com");
-      var blob = (u.hash || "") + " " + (u.search || "");
-      var sObject = blob.match(/sObject\/([a-zA-Z0-9]{15,18})\b/);
-      if (sObject && !id) id = sObject[1];
-      var lightningHash = blob.match(/\/lightning\/r\/([A-Za-z0-9_]+)\/([a-zA-Z0-9]{15,18})/);
-      if (lightningHash) {
-        objectName = objectName || lightningHash[1];
-        id = id || lightningHash[2];
-      }
-    } catch (eHash) {}
-    var attrObj = document.documentElement.getAttribute("data-lisfdc-object");
-    var attrId = document.documentElement.getAttribute("data-lisfdc-id");
-    if (attrObj) objectName = objectName || attrObj;
-    if (attrId) id = id || attrId;
-    return { object: objectName, id: id };
+  function isTokenShapedValue(value) {
+    var v = String(value == null ? "" : value).trim();
+    if (!v) return false;
+    if (v.length < 20) return false;
+    if (/\s/.test(v)) return false;
+    return /^(?:[A-Za-z0-9_\-+/=.]{20,}|[0-9a-f]{32,})$/i.test(v);
   }
 
-  function collectLightningFields() {
+  var SKIP_LABEL = /\b(?:cookie|sid|csrf|token|authorization|sessionid|aura\.token)\b/i;
+
+  function shouldSkipField(label, value) {
+    var l = String(label == null ? "" : label);
+    if (SKIP_LABEL.test(l)) return true;
+    if (isTokenShapedValue(value)) return true;
+    return false;
+  }
+
+  function pushField(fields, label, value) {
+    var l = String(label || "").replace(/\s+/g, " ").trim();
+    var v = String(value || "").replace(/\s+/g, " ").trim();
+    if (!l || !v) return;
+    if (shouldSkipField(l, v)) return;
+    if (l.length > 80 || v.length > 500) return;
+    for (var i = 0; i < fields.length; i++) {
+      if (fields[i].label === l && fields[i].value === v) return;
+    }
+    fields.push({ label: l, value: v });
+  }
+
+  function extractLightningFields() {
     var fields = [];
-    var seen = {};
-    var nodes = document.querySelectorAll(
-      "[data-lisfdc-field], .slds-form-element, records-record-layout-item, lightning-output-field, records-highlights-details-item, .slds-page-header__detail-row"
+    var items = document.querySelectorAll(
+      "records-record-layout-item, force-record-layout-item, .slds-form-element, lightning-output-field, .record-layout-item"
     );
-    for (var i = 0; i < nodes.length && fields.length < 12; i++) {
-      var n = nodes[i];
-      var label = "";
-      var value = "";
-      if (n.hasAttribute && n.hasAttribute("data-lisfdc-field")) {
-        label = n.getAttribute("data-lisfdc-label") || firstText(["[data-lisfdc-label]", ".slds-form-element__label"], n);
-        value = n.getAttribute("data-lisfdc-value") || firstText(["[data-lisfdc-value]", ".slds-form-element__static"], n);
-      } else {
-        label = firstText([
+    for (var i = 0; i < items.length && fields.length < 40; i++) {
+      var item = items[i];
+      var label =
+        firstText([
+          "span.test-id__field-label",
           ".slds-form-element__label",
           "label",
-          "span.test-id__field-label",
-          ".test-id__field-label"
-        ], n);
-        value = firstText([
-          ".slds-form-element__static",
+          "[slot=\"label\"]",
+          ".field-label"
+        ], item) ||
+        attr(item, "field-label") ||
+        attr(item, "data-target-selection-name");
+      var value =
+        firstText([
           "lightning-formatted-text",
-          "lightning-formatted-number",
-          "lightning-formatted-phone",
+          "lightning-formatted-name",
           "lightning-formatted-email",
+          "lightning-formatted-phone",
           "lightning-formatted-url",
+          "lightning-formatted-number",
           "lightning-formatted-address",
+          "lightning-base-formatted-text",
+          ".slds-form-element__control",
           ".test-id__field-value",
-          "span.test-id__field-value"
-        ], n);
+          "[slot=\"output\"]",
+          "a[href^=\"mailto:\"]",
+          "a[href^=\"tel:\"]"
+        ], item);
+      if (!value) {
+        var raw = item.querySelector(".slds-form-element__control, .test-id__field-value");
+        value = text(raw);
       }
-      if (!label || !value) continue;
-      if (SKIP_LABEL.test(label) || SKIP_LABEL.test(value)) continue;
-      var key = label + "\0" + value;
-      if (seen[key]) continue;
-      seen[key] = true;
-      fields.push({ label: label, value: value });
+      pushField(fields, label, value);
     }
     return fields;
   }
 
-  function collectClassicFields() {
+  function extractClassicFields() {
     var fields = [];
-    var seen = {};
-    var labels = document.querySelectorAll(".labelCol, td.labelCol, [data-lisfdc-field]");
-    for (var i = 0; i < labels.length && fields.length < 12; i++) {
-      var labEl = labels[i];
-      var label = textOf(labEl);
-      var value = "";
-      if (labEl.hasAttribute && labEl.hasAttribute("data-lisfdc-field")) {
-        label = labEl.getAttribute("data-lisfdc-label") || label;
-        value = labEl.getAttribute("data-lisfdc-value") || firstText(["[data-lisfdc-value]"], labEl);
-      } else {
-        var data = labEl.nextElementSibling;
-        if (data && (data.className || "").indexOf("dataCol") >= 0) {
-          value = textOf(data);
-        }
+    var rows = document.querySelectorAll(".pbBody .labelCol, .labelCol, td.labelCol");
+    for (var i = 0; i < rows.length && fields.length < 40; i++) {
+      var labelEl = rows[i];
+      var valueEl = labelEl.nextElementSibling;
+      if (!valueEl) continue;
+      pushField(fields, text(labelEl), text(valueEl));
+    }
+    var detail = document.querySelectorAll(".detailList tr, table.detailList tr");
+    for (var d = 0; d < detail.length && fields.length < 40; d++) {
+      var cells = detail[d].querySelectorAll("td, th");
+      if (cells.length >= 2) {
+        pushField(fields, text(cells[0]), text(cells[1]));
       }
-      label = label.replace(/:$/, "").trim();
-      if (!label || !value) continue;
-      if (SKIP_LABEL.test(label) || SKIP_LABEL.test(value)) continue;
-      var key = label + "\0" + value;
-      if (seen[key]) continue;
-      seen[key] = true;
-      fields.push({ label: label, value: value });
+      if (cells.length >= 4) {
+        pushField(fields, text(cells[2]), text(cells[3]));
+      }
     }
     return fields;
   }
 
-  function extractSalesforce() {
-    var url = pageUrl();
-    var title = "";
-    try {
-      title = document.title || "";
-    } catch (e) {}
-    var kind = "unknown";
-    try {
-      kind = kindFrom(url);
-    } catch (e2) {
-      kind = "unknown";
-    }
-    var parsed = { object: null, id: null };
-    try {
-      parsed = parseObjectAndId(url);
-    } catch (e3) {}
+  function extractHighlights() {
     var name = firstText([
-      "[data-lisfdc='record-name']",
-      ".slds-page-header__title lightning-formatted-text",
-      "h1.slds-page-header__title",
-      ".slds-page-header__title",
       "lightning-formatted-name",
-      "#headerTitle",
-      ".pageDescription",
+      "records-entity-label",
+      ".entityNameTitle",
+      ".slds-page-header__title",
+      "h1.slds-page-header__title",
       "h1.pageType",
+      "h2.pageType",
+      ".topName",
+      "#topButtonRow + * .pageType",
       "h1"
     ]);
-    var headerFields = [];
-    try {
-      if (kind === "classic") headerFields = collectClassicFields();
-      else headerFields = collectLightningFields();
-      if (!headerFields.length) {
-        headerFields = collectLightningFields().concat(collectClassicFields());
-      }
-    } catch (e4) {
-      headerFields = [];
-    }
-    var out = {
-      kind: kind,
-      url: url,
-      title: title,
-      extractedAt: new Date().toISOString(),
-      object: parsed.object,
-      id: parsed.id,
-      name: name || null,
-      headerFields: headerFields
-    };
-    return out;
+    return name;
   }
 
-  root.LISFDC_EXTRACT_SALESFORCE = extractSalesforce;
+  function extract() {
+    var href = location.href;
+    var id = idFromUrl(href);
+    var objectApi = objectFromUrl(href);
+    var name = extractHighlights();
+    var fields = extractLightningFields();
+    if (!fields.length) fields = extractClassicFields();
+    return {
+      id: id || null,
+      objectApiName: objectApi || null,
+      name: name || null,
+      fields: fields,
+      url: href.split("#")[0],
+      scrapedAt: new Date().toISOString()
+    };
+  }
+
+  root.__LISFDC_extractSalesforce = extract;
 })(typeof self !== "undefined" ? self : this);

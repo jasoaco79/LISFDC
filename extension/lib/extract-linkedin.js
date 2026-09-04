@@ -1,242 +1,294 @@
-/* LISFDC LinkedIn DOM extractor. Visible text only. Never cookies / tokens / CSRF. */
+/* LISFDC: scrape-only LinkedIn visible DOM → structured extract.
+ * No network. No cookies. Prefer semantic selectors; CSS class fallbacks are last resort.
+ */
 (function (root) {
   "use strict";
 
-  function textOf(el) {
+  function text(el) {
     if (!el) return "";
-    return String(el.innerText || el.textContent || "").replace(/\s+/g, " ").trim();
+    return String(el.textContent || "").replace(/\s+/g, " ").trim();
   }
 
   function firstText(selectors, rootEl) {
-    var scope = rootEl || document;
+    var base = rootEl || document;
     for (var i = 0; i < selectors.length; i++) {
       try {
-        var el = scope.querySelector(selectors[i]);
-        var t = textOf(el);
+        var el = base.querySelector(selectors[i]);
+        var t = text(el);
         if (t) return t;
       } catch (e) {}
     }
     return "";
   }
 
-  function attrOf(selectors, attr) {
-    for (var i = 0; i < selectors.length; i++) {
-      try {
-        var el = document.querySelector(selectors[i]);
-        if (el) {
-          var v = el.getAttribute(attr);
-          if (v) return v.trim();
-        }
-      } catch (e) {}
-    }
-    return "";
+  function attr(el, name) {
+    if (!el) return "";
+    return String(el.getAttribute(name) || "").trim();
   }
 
-  function pageUrl() {
-    if (root.LISFDC_HOSTS && root.LISFDC_HOSTS.pageUrl) {
-      var u = root.LISFDC_HOSTS.pageUrl();
-      if (u) return u;
-    }
+  function absUrl(href) {
+    if (!href) return "";
     try {
-      if (location.protocol !== "file:") return location.href;
-    } catch (e) {}
-    try {
-      return document.documentElement.getAttribute("data-lisfdc-url") || "";
-    } catch (e2) {
-      return "";
-    }
-  }
-
-  function kindFrom(url, doc) {
-    var u = (url || "").toLowerCase();
-    var path = "";
-    try {
-      path = new URL(url, "https://www.linkedin.com").pathname.toLowerCase();
+      return new URL(href, location.href).toString();
     } catch (e) {
-      path = u;
+      return href;
     }
-    if (u.indexOf("sales.linkedin.com") >= 0 || path.indexOf("/sales/") === 0 || path.indexOf("/sales/") >= 0) {
-      return "salesNav";
+  }
+
+  function pathParts() {
+    return (location.pathname || "/").split("/").filter(Boolean);
+  }
+
+  function kindFrom(pathname) {
+    var p = (pathname || "").toLowerCase();
+    if (
+      p.indexOf("/login") === 0 ||
+      p.indexOf("/checkpoint") === 0 ||
+      p.indexOf("/uas/") === 0 ||
+      p.indexOf("/signup") === 0 ||
+      p === "/authwall" ||
+      p.indexOf("/authwall") === 0
+    ) {
+      return "signedOut";
     }
-    if (path.indexOf("/in/") >= 0 || path.indexOf("/pub/") >= 0) return "profile";
-    if (path.indexOf("/company/") >= 0 || path.indexOf("/school/") >= 0) return "company";
-    if (path.indexOf("/search/") >= 0 || path.indexOf("/results/") >= 0) return "search";
-    if (doc.querySelector && doc.querySelector("[data-lisfdc-kind]")) {
-      return doc.querySelector("[data-lisfdc-kind]").getAttribute("data-lisfdc-kind") || "unknown";
-    }
-    if (doc.querySelector && doc.querySelector(".entity-result, .reusable-search__result-container")) return "search";
-    if (doc.querySelector && doc.querySelector(".org-top-card, .org-top-card-summary__title")) return "company";
-    if (doc.querySelector && doc.querySelector("h1.text-heading-xlarge, .pv-text-details__left-panel h1")) return "profile";
+    if (p === "/feed" || p.indexOf("/feed/") === 0) return "feed";
+    if (p.indexOf("/in/") === 0 || p.indexOf("/pub/") === 0) return "profile";
+    if (p.indexOf("/company/") === 0 || p.indexOf("/school/") === 0) return "company";
+    if (p.indexOf("/sales/") === 0 || p.indexOf("/salesnav/") === 0) return "salesNav";
+    if (p.indexOf("/search/") === 0) return "search";
     return "unknown";
   }
 
   function extractProfile() {
     var name = firstText([
+      "h1.inline.t-24",
       "h1.text-heading-xlarge",
+      "main h1.text-heading-xlarge",
+      "section.artdeco-card h1",
       ".pv-text-details__left-panel h1",
-      "[data-anonymize='person-name']",
-      "h1[data-lisfdc='name']",
-      "main h1",
-      "h1"
+      ".ph5 h1"
     ]);
     var headline = firstText([
       ".text-body-medium.break-words",
       ".pv-text-details__left-panel .text-body-medium",
-      "[data-anonymize='headline']",
-      "[data-lisfdc='headline']"
+      "div.text-body-medium"
     ]);
     var location = firstText([
       ".text-body-small.inline.t-black--light.break-words",
-      "[data-anonymize='location']",
-      "[data-lisfdc='location']",
-      ".pv-text-details__left-panel .text-body-small"
-    ]);
-    var currentRole = firstText([
-      "[data-lisfdc='current-role']",
-      "#experience ~ .pvs-list__outer-container li .t-bold span[aria-hidden='true']",
-      "#experience-section .pv-entity__summary-info h3",
-      ".pv-top-card--experience-list-item"
-    ]);
-    var company = firstText([
-      "[data-lisfdc='company']",
-      "#experience ~ .pvs-list__outer-container li .t-14.t-normal span[aria-hidden='true']",
-      ".pv-top-card--experience-list-item span"
+      ".pv-text-details__left-panel .text-body-small",
+      "span.text-body-small.inline"
     ]);
     var about = firstText([
-      "[data-lisfdc='about']",
-      "section#about ~ div .inline-show-more-text",
-      "#about ~ .display-flex",
-      "[data-generated-suggestion-target]",
-      "section.pv-about-section .pv-about__summary-text"
+      "#about ~ .display-flex .inline-show-more-text",
+      "section#about .inline-show-more-text",
+      "#about ~ * .full-width span[aria-hidden=\"true\"]"
     ]);
-    var profile = {};
-    if (name) profile.name = name;
-    if (headline) profile.headline = headline;
-    if (location) profile.location = location;
-    if (currentRole) profile.currentRole = currentRole;
-    if (company) profile.company = company;
-    if (about) profile.about = about;
-    return profile;
-  }
-
-  function extractSearch(url) {
-    var query = firstText([
-      "input.search-global-typeahead__input",
-      "input[data-lisfdc='query']",
-      ".search-global-typeahead__input",
-      "input[aria-label='Search']"
-    ]);
-    if (!query) {
-      try {
-        var u = new URL(url, "https://www.linkedin.com");
-        query = u.searchParams.get("keywords") || u.searchParams.get("query") || "";
-      } catch (e) {}
-    }
-    var countText = firstText([
-      ".search-results-container h2",
-      ".pb2.t-black--light.t-14",
-      "[data-lisfdc='result-count']",
-      ".search-reusables__filter-bar-result-count"
-    ]);
-    var resultCountEstimate = null;
-    if (countText) {
-      var m = countText.replace(/,/g, "").match(/(\d+)/);
-      if (m) resultCountEstimate = parseInt(m[1], 10);
-    }
-    var topResults = [];
-    var cards = document.querySelectorAll(
-      "[data-lisfdc='result'], .entity-result, [data-chameleon-result-urn], .reusable-search__result-container"
-    );
-    for (var i = 0; i < cards.length && topResults.length < 8; i++) {
-      var card = cards[i];
-      var name = firstText(["[data-lisfdc='result-name']", ".entity-result__title-text a span[aria-hidden='true']", ".entity-result__title-text a", "a.app-aware-link span[aria-hidden='true']", "a"], card);
-      var headline = firstText(["[data-lisfdc='result-headline']", ".entity-result__primary-subtitle", ".entity-result__summary", ".t-14.t-black.t-normal"], card);
-      var href = "";
-      var a = card.querySelector("a[href*='/in/'], a[data-lisfdc='result-url'], a.app-aware-link");
-      if (a) href = a.getAttribute("href") || "";
-      if (name) {
-        topResults.push({ name: name, headline: headline || "", url: href });
+    var experience = [];
+    var expRoot = document.querySelector("#experience") ||
+      document.querySelector("section.experience-section") ||
+      document.querySelector('[id*="experience"]');
+    if (expRoot) {
+      var items = expRoot.closest("section") || expRoot.parentElement || expRoot;
+      var rows = items.querySelectorAll("li, .pvs-list__paged-list-item, .artdeco-list__item");
+      for (var i = 0; i < rows.length && experience.length < 8; i++) {
+        var row = rows[i];
+        var title = firstText([
+          ".mr1.t-bold span[aria-hidden=\"true\"]",
+          ".hoverable-link-text.t-bold span[aria-hidden=\"true\"]",
+          "div.t-bold span[aria-hidden=\"true\"]",
+          "h3",
+          ".t-16.t-black.t-bold"
+        ], row);
+        var company = firstText([
+          ".t-14.t-normal span[aria-hidden=\"true\"]",
+          "span.t-14.t-normal",
+          "p.pv-entity__secondary-title",
+          ".pv-entity__company-summary-info h4"
+        ], row);
+        var dates = firstText([
+          ".t-14.t-normal.t-black--light span[aria-hidden=\"true\"]",
+          ".pvs-entity__caption-wrapper",
+          ".pv-entity__date-range span:nth-child(2)"
+        ], row);
+        if (title || company) {
+          experience.push({ title: title, company: company, dates: dates });
+        }
       }
     }
-    var search = {};
-    if (query) search.query = query;
-    if (resultCountEstimate !== null) search.resultCountEstimate = resultCountEstimate;
-    search.topResults = topResults;
-    return search;
+    var education = [];
+    var eduRoot = document.querySelector("#education") ||
+      document.querySelector("section.education-section");
+    if (eduRoot) {
+      var eduSec = eduRoot.closest("section") || eduRoot.parentElement || eduRoot;
+      var eduRows = eduSec.querySelectorAll("li, .pvs-list__paged-list-item, .artdeco-list__item");
+      for (var e = 0; e < eduRows.length && education.length < 6; e++) {
+        var er = eduRows[e];
+        var school = firstText([
+          ".mr1.t-bold span[aria-hidden=\"true\"]",
+          ".hoverable-link-text.t-bold span[aria-hidden=\"true\"]",
+          "h3",
+          ".pv-entity__school-name"
+        ], er);
+        var degree = firstText([
+          ".t-14.t-normal span[aria-hidden=\"true\"]",
+          ".pv-entity__degree-name .pv-entity__comma-item",
+          "span.t-14.t-normal"
+        ], er);
+        if (school || degree) education.push({ school: school, degree: degree });
+      }
+    }
+    var parts = pathParts();
+    var slug = "";
+    if (parts[0] === "in" || parts[0] === "pub") slug = parts[1] || "";
+    return {
+      profile: {
+        name: name,
+        headline: headline,
+        location: location,
+        about: about,
+        experience: experience,
+        education: education,
+        profileUrl: location.href.split("?")[0],
+        vanitySlug: slug
+      }
+    };
   }
 
   function extractCompany() {
     var name = firstText([
       "h1.org-top-card-summary__title",
-      ".org-top-card-summary__title",
-      "[data-lisfdc='company-name']",
-      "h1"
+      "h1.ember-view",
+      "h1",
+      ".org-top-card-summary__title"
     ]);
-    var about = firstText([
-      "[data-lisfdc='company-about']",
-      ".org-about-module p",
-      ".org-page-details-module__info-text",
-      ".break-words p"
+    var tagline = firstText([
+      ".org-top-card-summary__tagline",
+      ".org-page-details__definition-text"
     ]);
     var industry = firstText([
-      "[data-lisfdc='industry']",
       ".org-top-card-summary-info-list__info-item",
-      "dt + dd"
+      "dd.org-page-details__definition-text"
     ]);
-    var location = firstText([
-      "[data-lisfdc='company-location']",
-      ".org-top-card-summary-info-list__info-item + .org-top-card-summary-info-list__info-item"
+    var about = firstText([
+      ".org-about-module__description",
+      ".break-words.white-space-pre-wrap",
+      "section.org-about-module p"
     ]);
-    var company = {};
-    if (name) company.name = name;
-    if (about) company.about = about;
-    if (industry) company.industry = industry;
-    if (location) company.location = location;
-    return company;
+    var website = "";
+    var link = document.querySelector('a[data-control-name="page_member_main_nav_website_learn_more"], a[href^="http"][data-tracking-control-name*="website"]');
+    if (link) website = absUrl(attr(link, "href"));
+    var parts = pathParts();
+    var slug = parts[0] === "company" || parts[0] === "school" ? (parts[1] || "") : "";
+    return {
+      company: {
+        name: name,
+        tagline: tagline,
+        industry: industry,
+        about: about,
+        website: website,
+        companyUrl: location.href.split("?")[0],
+        vanitySlug: slug
+      }
+    };
   }
 
-  function extractLinkedIn() {
-    var url = pageUrl();
-    var title = "";
+  function extractSearch() {
+    var q = "";
     try {
-      title = document.title || "";
+      q = new URL(location.href).searchParams.get("keywords") ||
+        new URL(location.href).searchParams.get("query") || "";
     } catch (e) {}
-    var kind = "unknown";
-    try {
-      kind = kindFrom(url, document);
-    } catch (e2) {
-      kind = "unknown";
+    if (!q) {
+      q = firstText(['input[aria-label*="Search"]', "input.search-global-typeahead__input"]);
     }
-    var out = {
-      kind: kind,
-      url: url,
-      title: title,
-      extractedAt: new Date().toISOString()
+    var results = [];
+    var cards = document.querySelectorAll(
+      ".reusable-search__result-container, li.reusable-search__result-container, .entity-result, li.artdeco-list__item"
+    );
+    for (var i = 0; i < cards.length && results.length < 10; i++) {
+      var card = cards[i];
+      var n = firstText([
+        ".entity-result__title-text a span[aria-hidden=\"true\"]",
+        ".entity-result__title-text a",
+        "a.app-aware-link span[aria-hidden=\"true\"]",
+        "span.entity-result__title-text",
+        "a[data-control-name*="search_srp"] span[aria-hidden=\"true\"]"
+      ], card);
+      var h = firstText([
+        ".entity-result__primary-subtitle",
+        ".entity-result__summary"
+      ], card);
+      var a = card.querySelector("a[href*='/in/'], a[href*='/company/']");
+      var href = a ? absUrl(attr(a, "href")).split("?")[0] : "";
+      if (n || href) results.push({ name: n, headline: h, url: href });
+    }
+    return {
+      search: {
+        query: q,
+        resultCountVisible: results.length,
+        topResults: results
+      }
     };
-    try {
-      if (kind === "profile" || kind === "salesNav") {
-        var profile = extractProfile();
-        if (Object.keys(profile).length) out.profile = profile;
+  }
+
+  function extractSalesNav() {
+    var name = firstText([
+      "h1",
+      ".artdeco-entity-lockup__title",
+      "[data-anonymize=\"person-name\"]",
+      ".profile-topcard-person-entity__name"
+    ]);
+    var headline = firstText([
+      ".artdeco-entity-lockup__subtitle",
+      "[data-anonymize=\"headline\"]",
+      ".profile-topcard-person-entity__lockup-subtitle"
+    ]);
+    var company = firstText([
+      "[data-anonymize=\"company-name\"]",
+      ".profile-topcard__summary-position"
+    ]);
+    return {
+      profile: {
+        name: name,
+        headline: headline,
+        location: "",
+        about: "",
+        experience: company ? [{ title: "", company: company, dates: "" }] : [],
+        education: [],
+        profileUrl: location.href.split("?")[0],
+        vanitySlug: "",
+        salesNav: true
       }
-      if (kind === "search" || kind === "salesNav") {
-        var search = extractSearch(url);
-        if (search.query || (search.topResults && search.topResults.length)) out.search = search;
-      }
-      if (kind === "company" || kind === "salesNav") {
-        var company = extractCompany();
-        if (Object.keys(company).length) out.company = company;
-      }
-      if (kind === "unknown") {
-        var p = extractProfile();
-        if (p.name) {
-          out.profile = p;
-        }
-      }
-    } catch (err) {
-      out.error = "extract-failed";
+    };
+  }
+
+  function extract() {
+    var kind = kindFrom(location.pathname || "/");
+    var base = {
+      kind: kind,
+      url: location.href,
+      scrapedAt: new Date().toISOString()
+    };
+    var body;
+    if (kind === "signedOut" || kind === "feed" || kind === "unknown") {
+      body = {};
+    } else if (kind === "profile") {
+      body = extractProfile();
+    } else if (kind === "company") {
+      body = extractCompany();
+    } else if (kind === "search") {
+      body = extractSearch();
+    } else if (kind === "salesNav") {
+      body = extractSalesNav();
+    } else {
+      body = {};
     }
+    var out = {};
+    var k;
+    for (k in base) if (Object.prototype.hasOwnProperty.call(base, k)) out[k] = base[k];
+    for (k in body) if (Object.prototype.hasOwnProperty.call(body, k)) out[k] = body[k];
     return out;
   }
 
-  root.LISFDC_EXTRACT_LINKEDIN = extractLinkedIn;
+  root.__LISFDC_extractLinkedIn = extract;
 })(typeof self !== "undefined" ? self : this);
