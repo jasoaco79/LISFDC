@@ -8,7 +8,7 @@
 <body>
   <header class="top">
     <div>
-      <h1>LISFDC <span class="ver">v1</span></h1>
+      <h1>LISFDC <span class="ver">v1.1</span></h1>
       <p class="tag">LinkedIn + Salesforce reader (scrape-only)</p>
       <p id="tab-hint" class="hint">Current tab: …</p>
     </div>
@@ -36,6 +36,19 @@
       <pre id="sf-json" class="json">No Salesforce extract yet.</pre>
     </section>
   </main>
+
+
+  <section class="bridge" aria-label="Bot bridge">
+    <h2>Bot bridge</h2>
+    <p class="bridge-hint">Local MCP / Grok Bot control via 127.0.0.1. Human scrape buttons above still work without the bridge.</p>
+    <label class="bridge-row"><input type="checkbox" id="bridge-enabled" /> Enable bridge polling</label>
+    <label class="url-label" for="bridge-url">Base URL</label>
+    <input id="bridge-url" type="url" spellcheck="false" value="http://127.0.0.1:17321" />
+    <label class="url-label" for="bridge-token">Bearer token</label>
+    <input id="bridge-token" type="password" spellcheck="false" autocomplete="off" placeholder="Paste token from bridge stdout / .token" />
+    <button type="button" id="btn-bridge-save" class="secondary">Save bridge settings</button>
+    <p id="bridge-status" class="status" role="status"></p>
+  </section>
 
   <footer class="foot">
     <p>Never writes. Never exports cookies or session tokens. Salesforce is scrape-only — no navigate control.</p>

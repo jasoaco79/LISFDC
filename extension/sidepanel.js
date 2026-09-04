@@ -131,3 +131,58 @@ $("btn-clear").addEventListener("click", onClear);
 refreshHint();
 loadLast();
 setInterval(refreshHint, 4000);
+
+
+async function loadBridgeConfig() {
+  var resp = await send({ type: "GET_BRIDGE_CONFIG" });
+  if (!resp.ok) return;
+  var cfg = resp.config || {};
+  $("bridge-enabled").checked = !!cfg.enabled;
+  $("bridge-url").value = cfg.baseUrl || "http://127.0.0.1:17321";
+  $("bridge-token").value = cfg.token || "";
+  renderBridgeStatus(resp.status);
+}
+
+function renderBridgeStatus(status) {
+  var el = $("bridge-status");
+  if (!el) return;
+  if (!status) {
+    el.textContent = "";
+    el.className = "status";
+    return;
+  }
+  var msg = status.message || "";
+  if (status.at) msg += " (" + status.at + ")";
+  el.textContent = msg;
+  el.className = "status " + (status.ok ? "ok" : "err");
+}
+
+async function onBridgeSave() {
+  var enabled = $("bridge-enabled").checked;
+  var baseUrl = $("bridge-url").value;
+  var token = $("bridge-token").value;
+  $("bridge-status").textContent = "Saving…";
+  var resp = await send({
+    type: "SET_BRIDGE_CONFIG",
+    enabled: enabled,
+    baseUrl: baseUrl,
+    token: token
+  });
+  if (!resp.ok) {
+    $("bridge-status").textContent = resp.error || "Save failed";
+    $("bridge-status").className = "status err";
+    return;
+  }
+  $("bridge-status").textContent = "Saved. Polling " + (enabled ? "enabled" : "disabled") + ".";
+  $("bridge-status").className = "status ok";
+}
+
+async function refreshBridgeStatus() {
+  var resp = await send({ type: "BRIDGE_STATUS" });
+  if (resp && resp.ok) renderBridgeStatus(resp.status);
+}
+
+var btnBridge = $("btn-bridge-save");
+if (btnBridge) btnBridge.addEventListener("click", onBridgeSave);
+loadBridgeConfig();
+setInterval(refreshBridgeStatus, 5000);

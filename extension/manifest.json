@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
   "name": "LISFDC",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Scrape-only LinkedIn + Salesforce side panel. Reads visible fields from open logged-in tabs.",
   "permissions": [
     "sidePanel",
     "storage",
     "tabs",
     "scripting",
-    "activeTab"
+    "activeTab",
+    "alarms"
   ],
   "host_permissions": [
     "https://*.linkedin.com/*",
@@ -16,7 +17,9 @@
     "https://*.lightning.force.com/*",
     "https://*.salesforce.com/*",
     "https://*.my.salesforce.com/*",
-    "https://*.force.com/*"
+    "https://*.force.com/*",
+    "http://127.0.0.1:17321/*",
+    "http://localhost:17321/*"
   ],
   "background": {
     "service_worker": "background.js"

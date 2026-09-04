@@ -1,0 +1,14 @@
+{
+  "name": "lisfdc-bridge",
+  "version": "1.0.0",
+  "description": "Local HTTP bridge + MCP wrapper for LISFDC Chrome extension control",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "mcp": "node mcp-server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
