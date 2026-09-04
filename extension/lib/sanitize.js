@@ -10,11 +10,31 @@
     return SENSITIVE_KEY.test(String(key == null ? "" : key));
   }
 
+  function stripSensitiveQuery(value) {
+    if (typeof value !== "string") return value;
+    var s = value.trim();
+    if (!s || (s.indexOf("http://") !== 0 && s.indexOf("https://") !== 0)) return value;
+    try {
+      var u = new URL(s);
+      var keys = Array.from(u.searchParams.keys());
+      var changed = false;
+      for (var i = 0; i < keys.length; i++) {
+        if (SENSITIVE_KEY.test(keys[i])) {
+          u.searchParams.delete(keys[i]);
+          changed = true;
+        }
+      }
+      return changed ? u.toString() : value;
+    } catch (e) {
+      return value;
+    }
+  }
+
   function isSensitiveString(value) {
     if (typeof value !== "string") return false;
     var s = value.trim();
     if (!s) return false;
-    if (SENSITIVE_KEY.test(s) && s.length < 80 && s.indexOf(" ") < 0) return true;
+    if (SENSITIVE_KEY.test(s) && s.indexOf(" ") < 0 && s.indexOf("://") < 0) return true;
     if (/^(sid|csrf|cookie|authorization|sessionid|aura\.token)\s*=/i.test(s)) return true;
     if (/Set-Cookie:/i.test(s)) return true;
     return false;
@@ -49,6 +69,10 @@
         return undefined;
       }
       return out;
+    }
+    if (typeof value === "string") {
+      if (isSensitiveString(value)) return undefined;
+      return stripSensitiveQuery(value);
     }
     if (isSensitiveString(value)) return undefined;
     return value;

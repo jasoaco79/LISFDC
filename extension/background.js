@@ -140,6 +140,26 @@ async function storeExtract(kind, extract) {
   return cleaned;
 }
 
+function isRecordSalesforceExtract(extract) {
+  return !!(extract && extract.id);
+}
+
+function isUsableLinkedInExtract(extract) {
+  if (!extract) return false;
+  var kind = extract.kind;
+  if (kind === "unknown" || kind === "signedOut" || kind === "feed") return false;
+  if (kind === "profile" || kind === "salesNav") {
+    return !!(extract.profile && extract.profile.name);
+  }
+  if (kind === "company") {
+    return !!(extract.company && extract.company.name);
+  }
+  if (kind === "search") {
+    return !!(extract.search && (extract.search.query || (extract.search.topResults && extract.search.topResults.length)));
+  }
+  return false;
+}
+
 async function scrapeLinkedIn() {
   var tab = await findTab([LI_MATCH, "*://linkedin.com/*"]);
   if (!tab) {
@@ -159,6 +179,12 @@ async function scrapeLinkedIn() {
   }
   if (!resp || !resp.ok || !resp.extract) {
     return { ok: false, error: (resp && resp.error) || "LinkedIn tab did not return visible fields." };
+  }
+  if (!isUsableLinkedInExtract(resp.extract)) {
+    return {
+      ok: false,
+      error: "LinkedIn tab is login, feed, or an unknown layout — not stored. Open a profile, company, or search page, then scrape again."
+    };
   }
   var extract = await storeExtract("linkedin", resp.extract);
   return { ok: true, extract: extract };
@@ -183,6 +209,12 @@ async function scrapeSalesforce() {
   }
   if (!resp || !resp.ok || !resp.extract) {
     return { ok: false, error: (resp && resp.error) || "Salesforce tab did not return visible fields." };
+  }
+  if (!isRecordSalesforceExtract(resp.extract)) {
+    return {
+      ok: false,
+      error: "Salesforce tab is home, setup, login, or another non-record page — not stored. Open a record, then scrape again."
+    };
   }
   var extract = await storeExtract("salesforce", resp.extract);
   return { ok: true, extract: extract };
@@ -223,7 +255,6 @@ async function openLinkedInUrl(raw) {
     await chrome.tabs.update(tab.id, { url: parsed.toString(), active: true });
     return { ok: true, tabId: tab.id, url: parsed.toString(), created: false };
   }
-  // Spec: reuse an existing LinkedIn tab; create only when none exists.
   var created = await chrome.tabs.create({ url: parsed.toString(), active: true });
   return { ok: true, tabId: created.id, url: parsed.toString(), created: true };
 }
