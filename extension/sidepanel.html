@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>LISFDC</title>
+  <link rel="stylesheet" href="sidepanel.css" />
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1>LISFDC <span class="ver">v1</span></h1>
+      <p class="tag">LinkedIn + Salesforce reader (scrape-only)</p>
+      <p id="tab-hint" class="hint">Current tab: …</p>
+    </div>
+  </header>
+
+  <main class="cols">
+    <section class="col li" aria-label="LinkedIn">
+      <h2>LinkedIn</h2>
+      <div class="actions">
+        <button type="button" id="btn-read-li">Scrape LinkedIn</button>
+        <label class="url-label" for="li-url">Open in existing LinkedIn tab</label>
+        <input id="li-url" type="url" spellcheck="false" placeholder="https://www.linkedin.com/in/…" />
+        <button type="button" id="btn-open-li" class="secondary">Open in existing LinkedIn tab</button>
+      </div>
+      <p id="li-status" class="status" role="status"></p>
+      <pre id="li-json" class="json">No LinkedIn extract yet.</pre>
+    </section>
+
+    <section class="col sf" aria-label="Salesforce">
+      <h2>Salesforce</h2>
+      <div class="actions">
+        <button type="button" id="btn-read-sf">Scrape Salesforce</button>
+      </div>
+      <p id="sf-status" class="status" role="status"></p>
+      <pre id="sf-json" class="json">No Salesforce extract yet.</pre>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Never writes. Never exports cookies or session tokens. Salesforce is scrape-only — no navigate control.</p>
+    <button type="button" id="btn-clear" class="ghost">Clear last extracts</button>
+  </footer>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
