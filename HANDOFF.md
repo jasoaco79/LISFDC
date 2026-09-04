@@ -39,3 +39,8 @@ Passwords, cookies, SIDs, API keys, tokens, webhook URLs.
 - Salesforce: scrape only. No actions.
 - No cookie export, no session replay, no datacenter fetch.
 - Branch off `main`, open a PR, merge when Jason says. No merge, deploy, or store publish without that yes.
+
+
+## Bot bridge (local)
+
+Draft local bridge under `bridge/` + extension v1.1.0 polling client. Run bridge on operator machine, enable in side panel, attach MCP via `bridge/mcp-server.mjs`. Do not push or merge without Jason yes. SF remains scrape-only.

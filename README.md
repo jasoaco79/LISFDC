@@ -61,6 +61,19 @@ LinkedIn + Salesforce QA happens on the **operator’s real Chrome** (already si
 
 No `<all_urls>`.
 
+## Bot bridge (draft)
+
+Local loopback control so Grok Bot / Cursor MCP can drive research on the operator signed-in Chrome via LISFDC.
+
+1. On the operator machine, start the bridge from `bridge/` (package script `start`). It binds **127.0.0.1:17321** only, prints a bearer token once, and writes it to `bridge/.token` (gitignored).
+2. Load unpacked `extension/` (v1.1.0+). In the side panel **Bot bridge** section: enable, base URL `http://127.0.0.1:17321`, paste the token, Save.
+3. Configure local MCP to run `bridge/mcp-server.mjs` with env `LISFDC_BRIDGE_TOKEN` (same token) and optional `LISFDC_BRIDGE_URL` (default `http://127.0.0.1:17321`).
+4. Tools: health, scrape LinkedIn, open LinkedIn URL, research LinkedIn (open+wait+scrape), scrape Salesforce (open tab only), get stored extracts.
+
+**Locks unchanged:** Salesforce scrape-only (no navigate, no writes). No cookie/SID export. Human side-panel scrape path still works with the bridge disabled.
+
+Details: `bridge/README.md` and `docs/DESIGN.md`.
+
 ## Docs in this repo
 
 - [BOT_INSTALL.md](BOT_INSTALL.md) — **Grok Bot copy-paste prompt + install steps**

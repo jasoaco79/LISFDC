@@ -49,3 +49,21 @@ LinkedIn DOM is brittle. Prefer resilient selectors and fallbacks. Surface “no
 ## Non-goals (this edition)
 
 Write-back to Salesforce, matching/enrichment, Sales Nav depth, visual chrome of the panel, store publish, unattended harvest.
+
+
+## Bot bridge architecture (draft)
+
+Local-only control plane for Grok Bot / Cursor MCP:
+
+operator machine
+  - bridge/ HTTP server on 127.0.0.1:17321 (Bearer token)
+  - mcp-server.mjs (stdio MCP) posts commands and polls until done
+  - Chrome extension polls GET /v1/commands/pending (~2s alarm), runs existing helpers, POSTs result
+
+Command types: scrape_linkedin | open_linkedin | research_linkedin | scrape_salesforce | get_stored
+
+- **LinkedIn navigate OK** (open_linkedin / research_linkedin): https linkedin.com URL only, reuse existing LI tab or create.
+- **Salesforce still scrape-only:** scrape_salesforce rejects any url field; extension never navigates or writes SF.
+- Shared token via env LISFDC_BRIDGE_TOKEN; extension stores token+baseUrl in chrome.storage.local (side panel settings).
+- No cookies/SIDs/tokens in git. Generated token only in bridge/.token (gitignored).
+- Human side panel scrape path remains usable with bridge disabled.

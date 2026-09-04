@@ -7,3 +7,5 @@ auth.json
 node_modules/
 .DS_Store
 .pi-prompt-v1.md
+bridge/.token
+bridge/node_modules/
