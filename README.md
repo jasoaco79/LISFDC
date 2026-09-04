@@ -2,7 +2,7 @@
 
 Chrome Manifest V3 extension. **LinkedIn + Salesforce, from the operator’s own signed-in browser.**
 
-Private repo: https://github.com/jasoaco79/LISFDC
+Public repo: https://github.com/jasoaco79/LISFDC
 
 LISFDC does not log in for you. It does not live in a datacenter. It scrapes the LinkedIn tab you already have open and scrapes the Salesforce tab you already have open, then shows both extracts in a side panel.
 
@@ -36,9 +36,15 @@ One Chrome profile. Two tabs you already use. The extension never signs in on yo
 
 If you need a different LinkedIn URL, type it and open it in the existing LinkedIn tab, then scrape. Do not drive Salesforce that way.
 
+## Install with Grok Bot
+
+Any Grok Bot can install LISFDC on the **operator’s** Chrome (not the shared lab box). Copy the prompt and follow the steps in **[BOT_INSTALL.md](BOT_INSTALL.md)**.
+
+Summary for bots: fetch this public repo → read `BOT_INSTALL.md` + this README → ListMachines / operator `machineId` → clone/pull `main` → `chrome://extensions` → Developer mode → Load unpacked → `extension/` (with `manifest.json`, not repo root) → pin → open side panel. Never export cookies/tokens, never Salesforce writes, never Chrome Web Store publish. Chrome cannot be silently injected — hand desktop / request_box_help for Load unpacked and OS dialogs.
+
 ## Install (load unpacked)
 
-1. Clone or download this private repository.
+1. Clone or download this public repository: https://github.com/jasoaco79/LISFDC
 2. Open `chrome://extensions`.
 3. Turn on **Developer mode**.
 4. **Load unpacked** and choose the `extension/` folder of this clone (the folder that contains `manifest.json`, not the repo root).
@@ -46,7 +52,7 @@ If you need a different LinkedIn URL, type it and open it in the existing Linked
 
 ## QA
 
-LinkedIn + Salesforce QA is **Thursday 3 Sep 2026 on Jason's real Chrome**. The shared box login does not stick — do not expect a logged-in session there. Local `fixtures/` HTML is for extractor and screenshot checks only. **Do not merge without Jason's yes.**
+LinkedIn + Salesforce QA runs on the **operator’s own Chrome** (everyday signed-in profile). The shared box login does not stick — do not expect a logged-in session there. Local `fixtures/` HTML is for extractor and screenshot checks only. **Do not merge without the operator’s yes** when product behavior changes.
 
 ## Hosts
 
@@ -57,6 +63,7 @@ No `<all_urls>`.
 
 ## Docs in this repo
 
+- [BOT_INSTALL.md](BOT_INSTALL.md) — Grok Bot prompt + load-unpacked on the operator’s Chrome
 - [docs/DESIGN.md](docs/DESIGN.md) — architecture and locked decisions
 - [docs/PLAN.md](docs/PLAN.md) — v1 slice (QA target)
 - [HANDOFF.md](HANDOFF.md) — how the next person continues
@@ -69,4 +76,4 @@ Passwords, session cookies, Salesforce SIDs, API keys, tokens. Last extracts liv
 
 ## Process
 
-Branch off `main`, open a PR, review, merge when Jason says. No direct product commits to `main`. No store publish. No merge, deploy, or DNS without Jason’s yes.
+Branch off `main`, open a PR, review, merge when the operator says. No direct product commits to `main`. No store publish. No merge, deploy, or DNS without the operator’s yes.
