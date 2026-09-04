@@ -116,3 +116,49 @@ input[type="url"] {
   .cols { grid-template-columns: 1fr; }
   .col.li { border-right: 0; border-bottom: 1px solid #243040; }
 }
+
+.bridge {
+  padding: 12px 14px;
+  border-top: 1px solid #243040;
+  background: #121a22;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bridge h2 {
+  margin: 0 0 4px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #c4b5fd;
+}
+.bridge-hint {
+  margin: 0 0 4px;
+  color: #8b9bb0;
+  font-size: 11px;
+}
+.bridge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #e7ecf1;
+}
+.bridge input[type="url"],
+.bridge input[type="password"],
+.bridge input[type="text"] {
+  width: 100%;
+  padding: 7px 8px;
+  border-radius: 6px;
+  border: 1px solid #2c3c4e;
+  background: #0b0f14;
+  color: #e7ecf1;
+  font: 12px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.bridge button.secondary {
+  background: transparent;
+  color: #c4b5fd;
+  border: 1px solid #5b4a8a;
+  align-self: flex-start;
+  margin-top: 4px;
+}

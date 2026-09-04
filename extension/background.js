@@ -5,7 +5,7 @@
  */
 "use strict";
 
-importScripts("lib/hosts.js", "lib/sanitize.js");
+importScripts("lib/hosts.js", "lib/sanitize.js", "lib/bridge-client.js");
 
 var LI_MATCH = "*://*.linkedin.com/*";
 var SF_MATCHES = [
@@ -282,9 +282,34 @@ chrome.runtime.onMessage.addListener(function (msg, _sender, sendResponse) {
   else if (msg.type === "OPEN_LINKEDIN_URL") p = openLinkedInUrl(msg.url);
   else if (msg.type === "GET_LAST_EXTRACTS" || msg.type === "GET_STORED") p = getStored();
   else if (msg.type === "CLEAR_STORED") p = clearStored();
-  else return;
+  else if (msg.type === "GET_BRIDGE_CONFIG") {
+    p = self.LISFDC_BRIDGE.getConfig().then(function (cfg) {
+      return { ok: true, config: cfg, status: self.LISFDC_BRIDGE.getStatus() };
+    });
+  } else if (msg.type === "SET_BRIDGE_CONFIG") {
+    p = self.LISFDC_BRIDGE.setConfig({
+      enabled: !!(msg.enabled || (msg.config && msg.config.enabled)),
+      baseUrl: msg.baseUrl || (msg.config && msg.config.baseUrl),
+      token: msg.token || (msg.config && msg.config.token)
+    }).then(function () {
+      return self.LISFDC_BRIDGE.getConfig().then(function (cfg) {
+        return { ok: true, config: cfg };
+      });
+    });
+  } else if (msg.type === "BRIDGE_STATUS") {
+    p = Promise.resolve({ ok: true, status: self.LISFDC_BRIDGE.getStatus() });
+  } else return;
   p.then(sendResponse).catch(function (err) {
     sendResponse({ ok: false, error: String(err && err.message ? err.message : err) });
   });
   return true;
 });
+
+if (self.LISFDC_BRIDGE) {
+  self.LISFDC_BRIDGE.startPolling({
+    scrapeLinkedIn: scrapeLinkedIn,
+    scrapeSalesforce: scrapeSalesforce,
+    openLinkedInUrl: openLinkedInUrl,
+    getStored: getStored
+  });
+}
