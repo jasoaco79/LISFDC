@@ -2,11 +2,20 @@
 (function () {
   "use strict";
 
+  // extract-linkedin.js loads first and sets __LISFDC_extractLinkedIn.
+  // Capture it before we wrap with the message handler.
+  var extractImpl = self.__LISFDC_extractLinkedIn;
+  if (typeof extractImpl !== "function" && typeof window !== "undefined") {
+    extractImpl = window.__LISFDC_extractLinkedIn;
+  }
+
   function runExtract() {
-    var fn = self.LISFDC_EXTRACT_LINKEDIN || (typeof window !== "undefined" && window.LISFDC_EXTRACT_LINKEDIN);
-    var extract = fn ? fn() : {
+    var fn = extractImpl ||
+      self.LISFDC_EXTRACT_LINKEDIN ||
+      (typeof window !== "undefined" && window.LISFDC_EXTRACT_LINKEDIN);
+    var extract = typeof fn === "function" ? fn() : {
       kind: "unknown",
-      url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl()) || "",
+      url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl && self.LISFDC_HOSTS.pageUrl()) || location.href || "",
       title: document.title || "",
       extractedAt: new Date().toISOString(),
       error: "extractor-missing"
@@ -28,7 +37,7 @@
         error: "LinkedIn extract failed",
         extract: {
           kind: "unknown",
-          url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl()) || "",
+          url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl && self.LISFDC_HOSTS.pageUrl()) || location.href || "",
           title: document.title || "",
           extractedAt: new Date().toISOString(),
           error: "extract-failed"

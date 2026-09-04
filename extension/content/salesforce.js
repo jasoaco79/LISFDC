@@ -4,17 +4,24 @@
 (function () {
   "use strict";
 
+  var extractImpl = self.__LISFDC_extractSalesforce;
+  if (typeof extractImpl !== "function" && typeof window !== "undefined") {
+    extractImpl = window.__LISFDC_extractSalesforce;
+  }
+
   function runExtract() {
-    var fn = self.LISFDC_EXTRACT_SALESFORCE || (typeof window !== "undefined" && window.LISFDC_EXTRACT_SALESFORCE);
-    var extract = fn ? fn() : {
+    var fn = extractImpl ||
+      self.LISFDC_EXTRACT_SALESFORCE ||
+      (typeof window !== "undefined" && window.LISFDC_EXTRACT_SALESFORCE);
+    var extract = typeof fn === "function" ? fn() : {
       kind: "unknown",
-      url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl()) || "",
+      url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl && self.LISFDC_HOSTS.pageUrl()) || location.href || "",
       title: document.title || "",
-      extractedAt: new Date().toISOString(),
-      object: null,
+      scrapedAt: new Date().toISOString(),
       id: null,
+      objectApiName: null,
       name: null,
-      headerFields: [],
+      fields: [],
       error: "extractor-missing"
     };
     if (self.LISFDC_SANITIZE) extract = self.LISFDC_SANITIZE(extract);
@@ -34,13 +41,13 @@
         error: "Salesforce extract failed",
         extract: {
           kind: "unknown",
-          url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl()) || "",
+          url: (self.LISFDC_HOSTS && self.LISFDC_HOSTS.pageUrl && self.LISFDC_HOSTS.pageUrl()) || location.href || "",
           title: document.title || "",
-          extractedAt: new Date().toISOString(),
-          object: null,
+          scrapedAt: new Date().toISOString(),
           id: null,
+          objectApiName: null,
           name: null,
-          headerFields: [],
+          fields: [],
           error: "extract-failed"
         }
       });
